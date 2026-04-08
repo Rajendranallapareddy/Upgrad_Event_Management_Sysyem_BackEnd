@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Copy project files
 COPY EMS.DAL/*.csproj EMS.DAL/
-COPY EMS.Web/*.csproj EMS.Web/
+COPY EMS.WEB/*.csproj EMS.WEB/
 
 # Restore dependencies
 RUN dotnet restore EMS.Web/EMS.Web.csproj
