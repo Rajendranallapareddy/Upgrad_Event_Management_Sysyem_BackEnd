@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 WORKDIR /app
 
 # Copy everything
@@ -6,14 +6,7 @@ COPY . .
 
 # Restore and publish
 RUN dotnet restore
-RUN dotnet publish -c Release -o /publish
+RUN dotnet publish -c Release -o out
 
-# Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-WORKDIR /app
-COPY --from=build /publish .
-
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
-
-ENTRYPOINT ["dotnet", "EMS.Web.dll"]
+# Run the app
+CMD ["dotnet", "out/EMS.Web.dll"]
