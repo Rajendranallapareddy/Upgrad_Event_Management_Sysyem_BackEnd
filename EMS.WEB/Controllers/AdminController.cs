@@ -18,7 +18,6 @@ namespace EMS.Web.Controllers
 
         // ==================== DASHBOARD ====================
         
-        // GET: Admin Dashboard
         public async Task<IActionResult> Dashboard()
         {
             ViewBag.TotalEvents = await _context.Events.CountAsync();
@@ -26,13 +25,11 @@ namespace EMS.Web.Controllers
             ViewBag.TotalSpeakers = await _context.Speakers.CountAsync();
             ViewBag.TotalParticipants = await _context.Users.CountAsync(u => u.Role == "Participant");
             ViewBag.ActiveEvents = await _context.Events.CountAsync(e => e.Status == "Active");
-            
             return View();
         }
 
         // ==================== EVENT MANAGEMENT ====================
 
-        // GET: Events List
         public async Task<IActionResult> Events()
         {
             var events = await _context.Events
@@ -42,14 +39,12 @@ namespace EMS.Web.Controllers
             return View(events);
         }
 
-        // GET: Create Event Form
         [HttpGet]
         public IActionResult CreateEvent()
         {
             return View();
         }
 
-        // POST: Create Event
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateEvent(EventDetails eventEntity)
@@ -71,19 +66,14 @@ namespace EMS.Web.Controllers
             return View(eventEntity);
         }
 
-        // GET: Edit Event Form
         [HttpGet]
         public async Task<IActionResult> EditEvent(Guid id)
         {
             var eventEntity = await _context.Events.FindAsync(id);
-            if (eventEntity == null)
-            {
-                return NotFound();
-            }
+            if (eventEntity == null) return NotFound();
             return View(eventEntity);
         }
 
-        // POST: Edit Event
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditEvent(EventDetails eventEntity)
@@ -98,14 +88,10 @@ namespace EMS.Web.Controllers
             return View(eventEntity);
         }
 
-        // POST: Delete Event
         [HttpPost]
         public async Task<IActionResult> DeleteEvent(Guid id)
         {
-            var eventEntity = await _context.Events
-                .Include(e => e.Sessions)
-                .FirstOrDefaultAsync(e => e.EventId == id);
-                
+            var eventEntity = await _context.Events.FindAsync(id);
             if (eventEntity != null)
             {
                 _context.Events.Remove(eventEntity);
@@ -115,7 +101,6 @@ namespace EMS.Web.Controllers
             return RedirectToAction("Events");
         }
 
-        // POST: Toggle Event Status
         [HttpPost]
         public async Task<IActionResult> ToggleEventStatus(Guid id)
         {
@@ -131,7 +116,6 @@ namespace EMS.Web.Controllers
 
         // ==================== SESSION MANAGEMENT ====================
 
-        // GET: Sessions List
         public async Task<IActionResult> Sessions()
         {
             var sessions = await _context.Sessions
@@ -142,7 +126,6 @@ namespace EMS.Web.Controllers
             return View(sessions);
         }
 
-        // GET: Create Session Form
         [HttpGet]
         public async Task<IActionResult> CreateSession()
         {
@@ -151,7 +134,6 @@ namespace EMS.Web.Controllers
             return View();
         }
 
-        // POST: Create Session
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateSession([Bind("EventId,SessionTitle,SpeakerId,Description,SessionStart,SessionEnd,SessionUrl")] SessionInfo session)
@@ -160,6 +142,10 @@ namespace EMS.Web.Controllers
             ModelState.Remove("SessionId");
             ModelState.Remove("Event");
             ModelState.Remove("Speaker");
+
+            // Convert dates to UTC to avoid timezone issues
+            session.SessionStart = DateTime.SpecifyKind(session.SessionStart, DateTimeKind.Utc);
+            session.SessionEnd = DateTime.SpecifyKind(session.SessionEnd, DateTimeKind.Utc);
 
             if (ModelState.IsValid)
             {
@@ -199,13 +185,11 @@ namespace EMS.Web.Controllers
                 }
             }
 
-            // If validation failed, redisplay form with errors
             ViewBag.Events = await _context.Events.Where(e => e.Status == "Active").ToListAsync();
             ViewBag.Speakers = await _context.Speakers.ToListAsync();
             return View(session);
         }
 
-        // POST: Delete Session
         [HttpPost]
         public async Task<IActionResult> DeleteSession(Guid id)
         {
@@ -221,23 +205,18 @@ namespace EMS.Web.Controllers
 
         // ==================== SPEAKER MANAGEMENT ====================
 
-        // GET: Speakers List
         public async Task<IActionResult> Speakers()
         {
-            var speakers = await _context.Speakers
-                .Include(s => s.Sessions)
-                .ToListAsync();
+            var speakers = await _context.Speakers.Include(s => s.Sessions).ToListAsync();
             return View(speakers);
         }
 
-        // GET: Create Speaker Form
         [HttpGet]
         public IActionResult CreateSpeaker()
         {
             return View();
         }
 
-        // POST: Create Speaker
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateSpeaker(SpeakersDetails speaker)
@@ -253,7 +232,6 @@ namespace EMS.Web.Controllers
             return View(speaker);
         }
 
-        // POST: Delete Speaker
         [HttpPost]
         public async Task<IActionResult> DeleteSpeaker(Guid id)
         {
@@ -267,76 +245,36 @@ namespace EMS.Web.Controllers
             return RedirectToAction("Speakers");
         }
 
-        // ==================== ASSIGN SPEAKER TO SESSION ====================
+        // ==================== ASSIGN SPEAKER ====================
 
-        // GET: Assign Speaker Form
         [HttpGet]
         public async Task<IActionResult> AssignSpeaker()
         {
-            // Get ALL sessions with their event and speaker details
             var sessions = await _context.Sessions
                 .Include(s => s.Event)
                 .Include(s => s.Speaker)
                 .OrderByDescending(s => s.SessionStart)
                 .ToListAsync();
             
-            var speakers = await _context.Speakers
-                .OrderBy(s => s.SpeakerName)
-                .ToListAsync();
+            var speakers = await _context.Speakers.OrderBy(s => s.SpeakerName).ToListAsync();
             
             ViewBag.Sessions = sessions;
             ViewBag.Speakers = speakers;
             
-            // Show warning if no sessions exist
-            if (sessions.Count == 0)
-            {
-                TempData["Error"] = "No sessions found. Please create a session first.";
-            }
-            
             return View();
         }
 
-        // POST: Assign Speaker
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignSpeaker(Guid sessionId, Guid speakerId)
         {
-            if (sessionId == Guid.Empty)
-            {
-                TempData["Error"] = "Please select a session";
-                return RedirectToAction("AssignSpeaker");
-            }
-            
-            if (speakerId == Guid.Empty)
-            {
-                TempData["Error"] = "Please select a speaker";
-                return RedirectToAction("AssignSpeaker");
-            }
-
-            var session = await _context.Sessions
-                .Include(s => s.Event)
-                .Include(s => s.Speaker)
-                .FirstOrDefaultAsync(s => s.SessionId == sessionId);
-                
+            var session = await _context.Sessions.FindAsync(sessionId);
             if (session != null)
             {
-                var speaker = await _context.Speakers.FindAsync(speakerId);
-                if (speaker != null)
-                {
-                    session.SpeakerId = speakerId;
-                    await _context.SaveChangesAsync();
-                    TempData["Success"] = $"Speaker '{speaker.SpeakerName}' assigned to session '{session.SessionTitle}' successfully!";
-                }
-                else
-                {
-                    TempData["Error"] = "Speaker not found";
-                }
+                session.SpeakerId = speakerId;
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Speaker assigned successfully!";
             }
-            else
-            {
-                TempData["Error"] = "Session not found";
-            }
-            
             return RedirectToAction("Sessions");
         }
     }

@@ -34,8 +34,9 @@
 
                     <div class="mb-3">
                         <label asp-for="EventDate" class="form-label required-field"></label>
-                        <input asp-for="EventDate" class="form-control" type="datetime-local" />
+                        <input asp-for="EventDate" class="form-control" type="datetime-local" required />
                         <span asp-validation-for="EventDate" class="text-danger"></span>
+                        <small class="text-muted">Select local time (will be converted to UTC)</small>
                     </div>
 
                     <div class="mb-3">
@@ -64,4 +65,21 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const year = tomorrow.getFullYear();
+            const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+            const day = String(tomorrow.getDate()).padStart(2, '0');
+            const hours = String(tomorrow.getHours()).padStart(2, '0');
+            const minutes = String(tomorrow.getMinutes()).padStart(2, '0');
+            
+            const eventDateInput = document.getElementById('EventDate');
+            if (eventDateInput && !eventDateInput.value) {
+                eventDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        });
+    </script>
 }

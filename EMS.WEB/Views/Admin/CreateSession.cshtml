@@ -13,12 +13,7 @@
             <div class="card-body">
                 <form asp-action="CreateSession" method="post">
                     @Html.AntiForgeryToken()
-                    
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger">@TempData["Error"]</div>
-                    }
-                    
+
                     <div asp-validation-summary="All" class="text-danger"></div>
 
                     <div class="mb-3">
@@ -62,11 +57,13 @@
                             <label asp-for="SessionStart" class="form-label required-field"></label>
                             <input asp-for="SessionStart" class="form-control" type="datetime-local" required />
                             <span asp-validation-for="SessionStart" class="text-danger"></span>
+                            <small class="text-muted">Select local time (will be converted to UTC)</small>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label asp-for="SessionEnd" class="form-label required-field"></label>
                             <input asp-for="SessionEnd" class="form-control" type="datetime-local" required />
                             <span asp-validation-for="SessionEnd" class="text-danger"></span>
+                            <small class="text-muted">Select local time (will be converted to UTC)</small>
                         </div>
                     </div>
 
@@ -94,4 +91,34 @@
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default datetime values
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const defaultDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+            
+            const startInput = document.getElementById('SessionStart');
+            const endInput = document.getElementById('SessionEnd');
+            
+            if (startInput && !startInput.value) {
+                startInput.value = defaultDateTime;
+            }
+            
+            if (endInput && !endInput.value) {
+                // Set end time to 1 hour later
+                const endDate = new Date(now.getTime() + 60 * 60 * 1000);
+                const endYear = endDate.getFullYear();
+                const endMonth = String(endDate.getMonth() + 1).padStart(2, '0');
+                const endDay = String(endDate.getDate()).padStart(2, '0');
+                const endHours = String(endDate.getHours()).padStart(2, '0');
+                const endMinutes = String(endDate.getMinutes()).padStart(2, '0');
+                endInput.value = `${endYear}-${endMonth}-${endDay}T${endHours}:${endMinutes}`;
+            }
+        });
+    </script>
 }

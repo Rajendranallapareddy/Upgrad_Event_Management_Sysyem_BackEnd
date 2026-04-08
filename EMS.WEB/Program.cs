@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Get connection string
+// Get connection string from environment variable
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
@@ -77,18 +77,12 @@ using (var scope = app.Services.CreateScope())
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
-        // This ensures database and all tables are created
         dbContext.Database.EnsureCreated();
         Console.WriteLine("Database and tables created/verified successfully!");
-        
-        // Verify tables exist by checking if Events table has data
-        var eventCount = dbContext.Events.Count();
-        Console.WriteLine($"Number of events in database: {eventCount}");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Database error details: {ex.Message}");
-        Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
     }
 }
 
