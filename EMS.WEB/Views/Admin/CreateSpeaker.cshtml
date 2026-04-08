@@ -1,0 +1,35 @@
+@model SpeakersDetails
+@{
+    ViewData["Title"] = "Add Speaker";
+    Layout = "_AdminLayout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Add New Speaker</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="CreateSpeaker" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="SpeakerName" class="form-label required-field"></label>
+                        <input asp-for="SpeakerName" class="form-control" placeholder="Enter speaker's full name" />
+                        <span asp-validation-for="SpeakerName" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/Admin/Speakers" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-info">Add Speaker</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

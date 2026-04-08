@@ -1,0 +1,46 @@
+@model IEnumerable<SessionInfo>
+@{
+    ViewData["Title"] = "Manage Sessions";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chalkboard-user me-2"></i>Manage Sessions</h2>
+    <a href="/Admin/CreateSession" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i>Add Session
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Session Title</th>
+                <th>Event</th>
+                <th>Speaker</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var session in Model)
+            {
+                <tr>
+                    <td><strong>@session.SessionTitle</strong></td>
+                    <td>@session.Event?.EventName</td>
+                    <td>@(session.Speaker?.SpeakerName ?? "Not Assigned")</td>
+                    <td>@session.SessionStart.ToString("MMM dd, hh:mm tt")</td>
+                    <td>@session.SessionEnd.ToString("hh:mm tt")</td>
+                    <td>
+                        <form asp-action="DeleteSession" asp-route-id="@session.SessionId" method="post" onsubmit="return confirm('Delete this session?')">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

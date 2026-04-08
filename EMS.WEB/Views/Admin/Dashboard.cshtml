@@ -1,0 +1,101 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    Layout = "_AdminLayout";
+}
+
+<div class="mb-4">
+    <h2><i class="fas fa-tachometer-alt me-2"></i>Dashboard</h2>
+    <p class="text-muted">Welcome to your admin dashboard</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-3">
+        <div class="card stats-card bg-primary text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Events</h6>
+                        <h2 class="mb-0">@ViewBag.TotalEvents</h2>
+                    </div>
+                    <i class="fas fa-calendar-alt fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-success text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Active Events</h6>
+                        <h2 class="mb-0">@ViewBag.ActiveEvents</h2>
+                    </div>
+                    <i class="fas fa-check-circle fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-info text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Sessions</h6>
+                        <h2 class="mb-0">@ViewBag.TotalSessions</h2>
+                    </div>
+                    <i class="fas fa-chalkboard-user fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card bg-warning text-white shadow">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0">Total Speakers</h6>
+                        <h2 class="mb-0">@ViewBag.TotalSpeakers</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/Admin/CreateEvent" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>Create New Event
+                    </a>
+                    <a href="/Admin/CreateSession" class="btn btn-outline-success">
+                        <i class="fas fa-plus me-2"></i>Add New Session
+                    </a>
+                    <a href="/Admin/CreateSpeaker" class="btn btn-outline-info">
+                        <i class="fas fa-user-plus me-2"></i>Add New Speaker
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users me-2"></i>Participants</h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <i class="fas fa-user-friends fa-4x text-primary mb-3"></i>
+                    <h3>@ViewBag.TotalParticipants</h3>
+                    <p class="text-muted">Registered Participants</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
