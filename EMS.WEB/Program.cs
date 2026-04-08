@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Get connection string from environment variable (Render)
+// Get connection string from environment variable (Render PostgreSQL)
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
@@ -15,14 +15,14 @@ if (string.IsNullOrEmpty(connectionString))
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
-// Use PostgreSQL
+// Use PostgreSQL for Render
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
-builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>();
+builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>());
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -45,18 +45,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Create database on startup
+// Auto-create database tables on startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
         dbContext.Database.EnsureCreated();
-        Console.WriteLine("Database created successfully!");
+        Console.WriteLine("PostgreSQL database connected successfully!");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Database error: {ex.Message}");
+        Console.WriteLine($"Database connection error: {ex.Message}");
     }
 }
 

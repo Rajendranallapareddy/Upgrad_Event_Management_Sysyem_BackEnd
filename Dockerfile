@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy csproj files with correct names
+# Copy csproj files
 COPY EMS.DAL/*.csproj EMS.DAL/
 COPY EMS.WEB/*.csproj EMS.WEB/
 
@@ -18,6 +18,9 @@ RUN dotnet publish EMS.WEB/EMS.Web.csproj -c Release -o /publish
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /publish .
+
+# Install PostgreSQL dependencies (if needed)
+RUN apt-get update && apt-get install -y libpq-dev
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
