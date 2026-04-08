@@ -1,14 +1,20 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copy everything
+# Copy csproj files with correct names
+COPY EMS.DAL/*.csproj EMS.DAL/
+COPY EMS.WEB/*.csproj EMS.WEB/
+
+# Restore dependencies
+RUN dotnet restore EMS.WEB/EMS.Web.csproj
+
+# Copy all source code
 COPY . .
 
-# Restore and publish
-RUN dotnet restore
-RUN dotnet publish EMS.Web/EMS.Web.csproj -c Release -o /publish
+# Publish the application
+RUN dotnet publish EMS.WEB/EMS.Web.csproj -c Release -o /publish
 
-# Runtime
+# Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /publish .
