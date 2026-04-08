@@ -19,7 +19,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
-builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>());
+builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
