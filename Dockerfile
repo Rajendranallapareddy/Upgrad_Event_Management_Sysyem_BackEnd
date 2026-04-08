@@ -3,7 +3,7 @@ WORKDIR /src
 
 # Copy csproj files
 COPY EMS.DAL/EMS.DAL.csproj EMS.DAL/
-COPY EMS.WEB/EMS.WEB.csproj EMS.WEB/
+COPY EMS.WEB/EMS.Web.csproj EMS.WEB/
 
 # Restore dependencies
 RUN dotnet restore EMS.WEB/EMS.WEB.csproj
