@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EMS.DAL")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ab8b6737852fe99b55e81598a6fd8cf0dc68b29a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3dff4f8e92f2fccd5a58794b213a338ee5a74dbd")]
 [assembly: System.Reflection.AssemblyProductAttribute("EMS.DAL")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EMS.DAL")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
