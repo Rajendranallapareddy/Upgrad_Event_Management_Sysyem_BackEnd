@@ -7,15 +7,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Get connection string from environment variable
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-
 if (string.IsNullOrEmpty(connectionString))
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
-// Use PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -45,19 +42,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    try
-    {
-        dbContext.Database.EnsureCreated();
-        Console.WriteLine("PostgreSQL database connected successfully!");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Database error: {ex.Message}");
-    }
+    dbContext.Database.EnsureCreated();
 }
 
 app.UseStaticFiles();
