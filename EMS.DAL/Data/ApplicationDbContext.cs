@@ -20,6 +20,7 @@ namespace EMS.DAL.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Configure relationships
             modelBuilder.Entity<SessionInfo>()
                 .HasOne(s => s.Event)
                 .WithMany(e => e.Sessions)
@@ -44,7 +45,7 @@ namespace EMS.DAL.Data
                 .HasForeignKey(p => p.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Seed Admin User
+            // Seed admin user
             modelBuilder.Entity<UserInfo>().HasData(new UserInfo
             {
                 EmailId = "admin@upgrad.com",

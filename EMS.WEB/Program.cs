@@ -9,29 +9,47 @@ builder.Services.AddControllersWithViews();
 
 // Get connection string
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
 if (string.IsNullOrEmpty(connectionString))
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
-// Convert URL format if needed
+// Convert URL format to key-value format for PostgreSQL
 if (connectionString != null && connectionString.StartsWith("postgresql://"))
 {
-    var uri = new Uri(connectionString);
-    var userInfo = uri.UserInfo.Split(':');
-    var username = userInfo[0];
-    var password = userInfo[1];
-    connectionString = $"Host={uri.Host};Database={uri.AbsolutePath.TrimStart('/')};Username={username};Password={password};Port={uri.Port};SSL Mode=Require;Trust Server Certificate=true;";
+    try
+    {
+        var uri = new Uri(connectionString);
+        var userInfo = uri.UserInfo.Split(':');
+        var username = userInfo[0];
+        var password = userInfo[1];
+        var database = uri.AbsolutePath.TrimStart('/');
+        connectionString = $"Host={uri.Host};Database={database};Username={username};Password={password};Port={uri.Port};SSL Mode=Require;Trust Server Certificate=true;";
+        Console.WriteLine("Converted PostgreSQL connection string");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error parsing connection string: {ex.Message}");
+    }
 }
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+Console.WriteLine($"Connection string (first 50 chars): {(connectionString?.Length > 50 ? connectionString.Substring(0, 50) : connectionString)}");
 
+// Add DbContext
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseNpgsql(connectionString);
+    options.EnableSensitiveDataLogging(true);
+});
+
+// Register repositories
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IEventRepository, EventRepository>();
 builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IParticipantRepository, ParticipantRepository>();
 
+// Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
@@ -53,20 +71,24 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Ensure database is created and migrated
+// Create database and tables
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
-        // Delete existing database and recreate (for fresh start)
-        dbContext.Database.EnsureDeleted();
+        // This ensures database and all tables are created
         dbContext.Database.EnsureCreated();
-        Console.WriteLine("Database created successfully with all tables!");
+        Console.WriteLine("Database and tables created/verified successfully!");
+        
+        // Verify tables exist by checking if Events table has data
+        var eventCount = dbContext.Events.Count();
+        Console.WriteLine($"Number of events in database: {eventCount}");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Database error: {ex.Message}");
+        Console.WriteLine($"Database error details: {ex.Message}");
+        Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
     }
 }
 
