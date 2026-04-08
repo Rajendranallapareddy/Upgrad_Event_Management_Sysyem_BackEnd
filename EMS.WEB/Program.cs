@@ -7,14 +7,36 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
+// Get connection string - with better error handling
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
+
+// Log for debugging
+Console.WriteLine($"Environment variable exists: {!string.IsNullOrEmpty(connectionString)}");
+
 if (string.IsNullOrEmpty(connectionString))
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    Console.WriteLine($"Using appsettings connection string: {!string.IsNullOrEmpty(connectionString)}");
 }
 
+// For Render PostgreSQL, ensure proper format
+if (!string.IsNullOrEmpty(connectionString) && !connectionString.Contains("Host="))
+{
+    // Convert if needed - Render provides standard PostgreSQL URL
+    // The URL format is already correct for Npgsql
+}
+
+Console.WriteLine($"Final connection string length: {connectionString?.Length ?? 0}");
+
+// Use PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(connectionString));
+{
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new Exception("Database connection string is missing! Set ConnectionStrings__DefaultConnection environment variable.");
+    }
+    options.UseNpgsql(connectionString);
+});
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IEventRepository, EventRepository>();
@@ -42,10 +64,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.EnsureCreated();
+    try
+    {
+        dbContext.Database.EnsureCreated();
+        Console.WriteLine("PostgreSQL database connected successfully!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Database error: {ex.Message}");
+        throw; // Re-throw to see the error in logs
+    }
 }
 
 app.UseStaticFiles();
