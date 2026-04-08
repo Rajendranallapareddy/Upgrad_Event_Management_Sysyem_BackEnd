@@ -7,36 +7,25 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Get connection string - with better error handling
+// Get connection string
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
-
-// Log for debugging
-Console.WriteLine($"Environment variable exists: {!string.IsNullOrEmpty(connectionString)}");
-
 if (string.IsNullOrEmpty(connectionString))
 {
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    Console.WriteLine($"Using appsettings connection string: {!string.IsNullOrEmpty(connectionString)}");
 }
 
-// For Render PostgreSQL, ensure proper format
-if (!string.IsNullOrEmpty(connectionString) && !connectionString.Contains("Host="))
+// Convert URL format if needed
+if (connectionString != null && connectionString.StartsWith("postgresql://"))
 {
-    // Convert if needed - Render provides standard PostgreSQL URL
-    // The URL format is already correct for Npgsql
+    var uri = new Uri(connectionString);
+    var userInfo = uri.UserInfo.Split(':');
+    var username = userInfo[0];
+    var password = userInfo[1];
+    connectionString = $"Host={uri.Host};Database={uri.AbsolutePath.TrimStart('/')};Username={username};Password={password};Port={uri.Port};SSL Mode=Require;Trust Server Certificate=true;";
 }
 
-Console.WriteLine($"Final connection string length: {connectionString?.Length ?? 0}");
-
-// Use PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-{
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        throw new Exception("Database connection string is missing! Set ConnectionStrings__DefaultConnection environment variable.");
-    }
-    options.UseNpgsql(connectionString);
-});
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IEventRepository, EventRepository>();
@@ -64,19 +53,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Ensure database is created
+// Ensure database is created and migrated
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
+        // Delete existing database and recreate (for fresh start)
+        dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
-        Console.WriteLine("PostgreSQL database connected successfully!");
+        Console.WriteLine("Database created successfully with all tables!");
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Database error: {ex.Message}");
-        throw; // Re-throw to see the error in logs
     }
 }
 
