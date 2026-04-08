@@ -10,16 +10,6 @@ namespace EMS.DAL.Data
         {
         }
 
-        // Add this constructor for migrations
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            if (!optionsBuilder.IsConfigured)
-            {
-                optionsBuilder.UseSqlServer("Server=localhost\\SQLEXPRESS;Database=EMSDatabase;Trusted_Connection=True;TrustServerCertificate=true",
-                    b => b.MigrationsAssembly("EMS.Web"));
-            }
-        }
-
         public DbSet<UserInfo> Users { get; set; }
         public DbSet<EventDetails> Events { get; set; }
         public DbSet<SpeakersDetails> Speakers { get; set; }
@@ -54,6 +44,7 @@ namespace EMS.DAL.Data
                 .HasForeignKey(p => p.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Seed Admin User
             modelBuilder.Entity<UserInfo>().HasData(new UserInfo
             {
                 EmailId = "admin@upgrad.com",

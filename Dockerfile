@@ -5,22 +5,19 @@ WORKDIR /app
 COPY EMS.DAL/*.csproj EMS.DAL/
 COPY EMS.WEB/*.csproj EMS.WEB/
 
-# Restore dependencies
+# Restore
 RUN dotnet restore EMS.WEB/EMS.Web.csproj
 
-# Copy all source code
+# Copy all code
 COPY . .
 
-# Publish the application
+# Publish
 RUN dotnet publish EMS.WEB/EMS.Web.csproj -c Release -o /publish
 
-# Runtime stage
+# Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /publish .
-
-# Install PostgreSQL dependencies (if needed)
-RUN apt-get update && apt-get install -y libpq-dev
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080

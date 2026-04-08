@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
-// Get connection string from environment variable (Render PostgreSQL)
+// Get connection string from environment variable
 var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection");
 
 if (string.IsNullOrEmpty(connectionString))
@@ -15,7 +15,7 @@ if (string.IsNullOrEmpty(connectionString))
     connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 }
 
-// Use PostgreSQL for Render
+// Use PostgreSQL
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -45,18 +45,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-// Auto-create database tables on startup
+// Ensure database is created
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     try
     {
         dbContext.Database.EnsureCreated();
-        Console.WriteLine("PostgreSQL database connected successfully!");
+        Console.WriteLine("PostgreSQL database connected!");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Database connection error: {ex.Message}");
+        Console.WriteLine($"Database error: {ex.Message}");
     }
 }
 
