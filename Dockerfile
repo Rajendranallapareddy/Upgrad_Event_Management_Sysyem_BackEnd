@@ -6,13 +6,13 @@ COPY EMS.DAL/EMS.DAL.csproj EMS.DAL/
 COPY EMS.WEB/EMS.Web.csproj EMS.WEB/
 
 # Restore dependencies
-RUN dotnet restore EMS.WEB/EMS.WEB.csproj
+RUN dotnet restore EMS.WEB/EMS.Web.csproj
 
 # Copy all files
 COPY . .
 
 # Publish
-RUN dotnet publish EMS.WEB/EMS.WEB.csproj -c Release -o /app/publish
+RUN dotnet publish EMS.WEB/EMS.Web.csproj -c Release -o /app/publish
 
 # Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
