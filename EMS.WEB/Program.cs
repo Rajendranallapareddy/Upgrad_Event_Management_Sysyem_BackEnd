@@ -52,7 +52,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         dbContext.Database.EnsureCreated();
-        Console.WriteLine("PostgreSQL database connected!");
+        Console.WriteLine("PostgreSQL database connected successfully!");
     }
     catch (Exception ex)
     {
