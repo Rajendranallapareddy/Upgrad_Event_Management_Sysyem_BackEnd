@@ -1,23 +1,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
+WORKDIR /app
 
-# Copy csproj files
-COPY EMS.DAL/EMS.DAL.csproj EMS.DAL/
-COPY EMS.WEB/EMS.Web.csproj EMS.WEB/
-
-# Restore dependencies
-RUN dotnet restore EMS.WEB/EMS.Web.csproj
-
-# Copy all files
+# Copy everything
 COPY . .
 
-# Publish
-RUN dotnet publish EMS.WEB/EMS.WEB.csproj -c Release -o /app/publish
+# Restore and publish
+RUN dotnet restore
+RUN dotnet publish EMS.Web/EMS.Web.csproj -c Release -o /publish
 
-# Runtime image
+# Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /app/publish .
+COPY --from=build /publish .
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
