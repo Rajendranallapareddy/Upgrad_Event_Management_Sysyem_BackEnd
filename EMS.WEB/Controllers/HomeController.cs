@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EMS.DAL.Data;
-using EMS.DAL.Models;
 
 namespace EMS.Web.Controllers
 {
@@ -16,8 +15,11 @@ namespace EMS.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+            // Use UTC time to avoid timezone issues with PostgreSQL
+            var currentDate = DateTime.UtcNow;
+            
             var events = await _context.Events
-                .Where(e => e.Status == "Active" && e.EventDate >= DateTime.Now)
+                .Where(e => e.Status == "Active" && e.EventDate >= currentDate)
                 .Include(e => e.Sessions)
                 .ThenInclude(s => s.Speaker)
                 .OrderBy(e => e.EventDate)
@@ -60,14 +62,21 @@ namespace EMS.Web.Controllers
 
         public async Task<IActionResult> EventsByCategory(string category)
         {
+            var currentDate = DateTime.UtcNow;
+            
             var events = await _context.Events
-                .Where(e => e.EventCategory == category && e.Status == "Active" && e.EventDate >= DateTime.Now)
+                .Where(e => e.EventCategory == category && e.Status == "Active" && e.EventDate >= currentDate)
                 .Include(e => e.Sessions)
                 .OrderBy(e => e.EventDate)
                 .ToListAsync();
 
             ViewBag.Category = category;
             return View(events);
+        }
+
+        public IActionResult About()
+        {
+            return View();
         }
     }
 }

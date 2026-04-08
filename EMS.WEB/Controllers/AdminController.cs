@@ -56,7 +56,7 @@ namespace EMS.Web.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (eventEntity.EventDate <= DateTime.Now)
+                if (eventEntity.EventDate <= DateTime.UtcNow)
                 {
                     ModelState.AddModelError("EventDate", "Event date must be in the future");
                     return View(eventEntity);
