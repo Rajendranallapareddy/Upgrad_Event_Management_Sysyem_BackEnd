@@ -1,32 +1,25 @@
-# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /app
+WORKDIR /src
 
-# Copy project files
-COPY EMS.DAL/*.csproj EMS.DAL/
-COPY EMS.Web/*.csproj EMS.Web/
+# Copy csproj files
+COPY EMS.DAL/EMS.DAL.csproj EMS.DAL/
+COPY EMS.WEB/EMS.Web.csproj EMS.WEB/
 
 # Restore dependencies
-RUN dotnet restore EMS.Web/EMS.Web.csproj
+RUN dotnet restore EMS.WEB/EMS.Web.csproj
 
-# Copy all source code
+# Copy all files
 COPY . .
 
-# Publish the application
-RUN dotnet publish EMS.Web/EMS.Web.csproj -c Release -o /out
+# Publish
+RUN dotnet publish EMS.WEB/EMS.WEB.csproj -c Release -o /app/publish
 
-# Runtime stage
+# Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
-COPY --from=build /out .
+COPY --from=build /app/publish .
 
-# Expose port
 EXPOSE 8080
-EXPOSE 8081
-
-# Set environment variables
 ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_ENVIRONMENT=Production
 
-# Start the application
 ENTRYPOINT ["dotnet", "EMS.Web.dll"]

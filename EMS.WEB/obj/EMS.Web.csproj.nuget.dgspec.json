@@ -1,7 +1,7 @@
 {
   "format": 1,
   "restore": {
-    "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.Web\\EMS.Web.csproj": {}
+    "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.WEB\\EMS.Web.csproj": {}
   },
   "projects": {
     "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.DAL\\EMS.DAL.csproj": {
@@ -64,6 +64,10 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[8.0.0, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.0, )"
             }
           },
           "imports": [
@@ -86,14 +90,14 @@
         }
       }
     },
-    "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.Web\\EMS.Web.csproj": {
+    "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.WEB\\EMS.Web.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.Web\\EMS.Web.csproj",
+        "projectUniqueName": "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.WEB\\EMS.Web.csproj",
         "projectName": "EMS.Web",
-        "projectPath": "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.Web\\EMS.Web.csproj",
+        "projectPath": "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.WEB\\EMS.Web.csproj",
         "packagesPath": "C:\\Users\\RAJENDRA\\.nuget\\packages\\",
-        "outputPath": "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.Web\\obj\\",
+        "outputPath": "D:\\RR\\.Net_FSD_Angular\\Mini_Projects\\Upgrad_Event_Management_Back_End\\EMS.WEB\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -150,6 +154,10 @@
             "Microsoft.EntityFrameworkCore.Tools": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.0, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[8.0.0, )"
             }

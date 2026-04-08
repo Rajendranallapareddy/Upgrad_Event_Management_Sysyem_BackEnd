@@ -4,7 +4,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMS.DAL", "EMS.DAL\EMS.DAL.csproj", "{A1B2C3D4-E5F6-7890-AB12-CD34EF567890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMS.Web", "EMS.Web\EMS.Web.csproj", "{B2C3D4E5-F6A7-8901-BC23-DE45F6789012}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EMS.WEB", "EMS.WEB\EMS.Web.csproj", "{B2C3D4E5-F6A7-8901-BC23-DE45F6789012}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
