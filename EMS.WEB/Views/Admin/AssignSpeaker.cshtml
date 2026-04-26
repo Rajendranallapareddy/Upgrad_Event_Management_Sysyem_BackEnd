@@ -1,0 +1,89 @@
+@{
+    ViewData["Title"] = "Assign Speaker to Session";
+    Layout = "_AdminLayout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-user-plus me-2"></i>Assign Speaker to Session</h4>
+            </div>
+            <div class="card-body">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <form asp-action="AssignSpeaker" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label for="sessionId" class="form-label required-field">Select Session</label>
+                        <select name="sessionId" id="sessionId" class="form-select" required>
+                            <option value="">-- Select a Session --</option>
+                            @if (ViewBag.Sessions != null && ViewBag.Sessions.Count > 0)
+                            {
+                                foreach (var session in ViewBag.Sessions)
+                                {
+                                    <option value="@session.SessionId">
+                                        @session.SessionTitle - @session.Event?.EventName 
+                                        @(session.Speaker != null ? $"(Current: {session.Speaker.SpeakerName})" : "(No Speaker)")
+                                    </option>
+                                }
+                            }
+                        </select>
+                        @if (ViewBag.Sessions == null || ViewBag.Sessions.Count == 0)
+                        {
+                            <div class="alert alert-warning mt-2">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                No sessions found. Please <a href="/Admin/CreateSession" class="alert-link">create a session</a> first.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="speakerId" class="form-label required-field">Select Speaker</label>
+                        <select name="speakerId" id="speakerId" class="form-select" required>
+                            <option value="">-- Select a Speaker --</option>
+                            @if (ViewBag.Speakers != null && ViewBag.Speakers.Count > 0)
+                            {
+                                foreach (var speaker in ViewBag.Speakers)
+                                {
+                                    <option value="@speaker.SpeakerId">@speaker.SpeakerName</option>
+                                }
+                            }
+                        </select>
+                        @if (ViewBag.Speakers == null || ViewBag.Speakers.Count == 0)
+                        {
+                            <div class="alert alert-warning mt-2">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                No speakers found. Please <a href="/Admin/CreateSpeaker" class="alert-link">add a speaker</a> first.
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/Admin/Sessions" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Sessions
+                        </a>
+                        <button type="submit" class="btn btn-primary" @(ViewBag.Sessions == null || ViewBag.Sessions.Count == 0 || ViewBag.Speakers == null || ViewBag.Speakers.Count == 0 ? "disabled" : "")>
+                            <i class="fas fa-save me-1"></i> Assign Speaker
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

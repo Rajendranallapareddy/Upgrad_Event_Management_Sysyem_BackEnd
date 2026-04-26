@@ -1,0 +1,343 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using EMS.DAL.Models;
+using EMS.DAL.Data;
+
+namespace EMS.Web.Controllers
+{
+    [Authorize(Roles = "Admin")]
+    public class AdminController : Controller
+    {
+        private readonly ApplicationDbContext _context;
+
+        public AdminController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        // ==================== DASHBOARD ====================
+        
+        // GET: Admin Dashboard
+        public async Task<IActionResult> Dashboard()
+        {
+            ViewBag.TotalEvents = await _context.Events.CountAsync();
+            ViewBag.TotalSessions = await _context.Sessions.CountAsync();
+            ViewBag.TotalSpeakers = await _context.Speakers.CountAsync();
+            ViewBag.TotalParticipants = await _context.Users.CountAsync(u => u.Role == "Participant");
+            ViewBag.ActiveEvents = await _context.Events.CountAsync(e => e.Status == "Active");
+            
+            return View();
+        }
+
+        // ==================== EVENT MANAGEMENT ====================
+
+        // GET: Events List
+        public async Task<IActionResult> Events()
+        {
+            var events = await _context.Events
+                .Include(e => e.Sessions)
+                .OrderByDescending(e => e.EventDate)
+                .ToListAsync();
+            return View(events);
+        }
+
+        // GET: Create Event Form
+        [HttpGet]
+        public IActionResult CreateEvent()
+        {
+            return View();
+        }
+
+        // POST: Create Event
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateEvent(EventDetails eventEntity)
+        {
+            if (ModelState.IsValid)
+            {
+                if (eventEntity.EventDate <= DateTime.Now)
+                {
+                    ModelState.AddModelError("EventDate", "Event date must be in the future");
+                    return View(eventEntity);
+                }
+
+                eventEntity.EventId = Guid.NewGuid();
+                _context.Events.Add(eventEntity);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Event created successfully!";
+                return RedirectToAction("Events");
+            }
+            return View(eventEntity);
+        }
+
+        // GET: Edit Event Form
+        [HttpGet]
+        public async Task<IActionResult> EditEvent(Guid id)
+        {
+            var eventEntity = await _context.Events.FindAsync(id);
+            if (eventEntity == null)
+            {
+                return NotFound();
+            }
+            return View(eventEntity);
+        }
+
+        // POST: Edit Event
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditEvent(EventDetails eventEntity)
+        {
+            if (ModelState.IsValid)
+            {
+                _context.Update(eventEntity);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Event updated successfully!";
+                return RedirectToAction("Events");
+            }
+            return View(eventEntity);
+        }
+
+        // POST: Delete Event
+        [HttpPost]
+        public async Task<IActionResult> DeleteEvent(Guid id)
+        {
+            var eventEntity = await _context.Events
+                .Include(e => e.Sessions)
+                .FirstOrDefaultAsync(e => e.EventId == id);
+                
+            if (eventEntity != null)
+            {
+                _context.Events.Remove(eventEntity);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Event deleted successfully!";
+            }
+            return RedirectToAction("Events");
+        }
+
+        // POST: Toggle Event Status
+        [HttpPost]
+        public async Task<IActionResult> ToggleEventStatus(Guid id)
+        {
+            var eventEntity = await _context.Events.FindAsync(id);
+            if (eventEntity != null)
+            {
+                eventEntity.Status = eventEntity.Status == "Active" ? "In-Active" : "Active";
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Event status changed to {eventEntity.Status}!";
+            }
+            return RedirectToAction("Events");
+        }
+
+        // ==================== SESSION MANAGEMENT ====================
+
+        // GET: Sessions List
+        public async Task<IActionResult> Sessions()
+        {
+            var sessions = await _context.Sessions
+                .Include(s => s.Event)
+                .Include(s => s.Speaker)
+                .OrderBy(s => s.SessionStart)
+                .ToListAsync();
+            return View(sessions);
+        }
+
+        // GET: Create Session Form
+        [HttpGet]
+        public async Task<IActionResult> CreateSession()
+        {
+            ViewBag.Events = await _context.Events.Where(e => e.Status == "Active").ToListAsync();
+            ViewBag.Speakers = await _context.Speakers.ToListAsync();
+            return View();
+        }
+
+        // POST: Create Session
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSession([Bind("EventId,SessionTitle,SpeakerId,Description,SessionStart,SessionEnd,SessionUrl")] SessionInfo session)
+        {
+            // Remove validation for auto-generated fields
+            ModelState.Remove("SessionId");
+            ModelState.Remove("Event");
+            ModelState.Remove("Speaker");
+
+            if (ModelState.IsValid)
+            {
+                // Validate session times
+                if (session.SessionStart >= session.SessionEnd)
+                {
+                    ModelState.AddModelError("SessionEnd", "Session end time must be after start time");
+                    ViewBag.Events = await _context.Events.Where(e => e.Status == "Active").ToListAsync();
+                    ViewBag.Speakers = await _context.Speakers.ToListAsync();
+                    return View(session);
+                }
+
+                // Validate event exists
+                var eventExists = await _context.Events.AnyAsync(e => e.EventId == session.EventId);
+                if (!eventExists)
+                {
+                    ModelState.AddModelError("EventId", "Selected event does not exist");
+                    ViewBag.Events = await _context.Events.Where(e => e.Status == "Active").ToListAsync();
+                    ViewBag.Speakers = await _context.Speakers.ToListAsync();
+                    return View(session);
+                }
+
+                try
+                {
+                    session.SessionId = Guid.NewGuid();
+                    _context.Sessions.Add(session);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = $"Session '{session.SessionTitle}' created successfully!";
+                    return RedirectToAction("Sessions");
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Error creating session: {ex.Message}";
+                    ViewBag.Events = await _context.Events.Where(e => e.Status == "Active").ToListAsync();
+                    ViewBag.Speakers = await _context.Speakers.ToListAsync();
+                    return View(session);
+                }
+            }
+
+            // If validation failed, redisplay form with errors
+            ViewBag.Events = await _context.Events.Where(e => e.Status == "Active").ToListAsync();
+            ViewBag.Speakers = await _context.Speakers.ToListAsync();
+            return View(session);
+        }
+
+        // POST: Delete Session
+        [HttpPost]
+        public async Task<IActionResult> DeleteSession(Guid id)
+        {
+            var session = await _context.Sessions.FindAsync(id);
+            if (session != null)
+            {
+                _context.Sessions.Remove(session);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Session deleted successfully!";
+            }
+            return RedirectToAction("Sessions");
+        }
+
+        // ==================== SPEAKER MANAGEMENT ====================
+
+        // GET: Speakers List
+        public async Task<IActionResult> Speakers()
+        {
+            var speakers = await _context.Speakers
+                .Include(s => s.Sessions)
+                .ToListAsync();
+            return View(speakers);
+        }
+
+        // GET: Create Speaker Form
+        [HttpGet]
+        public IActionResult CreateSpeaker()
+        {
+            return View();
+        }
+
+        // POST: Create Speaker
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSpeaker(SpeakersDetails speaker)
+        {
+            if (ModelState.IsValid)
+            {
+                speaker.SpeakerId = Guid.NewGuid();
+                _context.Speakers.Add(speaker);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Speaker added successfully!";
+                return RedirectToAction("Speakers");
+            }
+            return View(speaker);
+        }
+
+        // POST: Delete Speaker
+        [HttpPost]
+        public async Task<IActionResult> DeleteSpeaker(Guid id)
+        {
+            var speaker = await _context.Speakers.FindAsync(id);
+            if (speaker != null)
+            {
+                _context.Speakers.Remove(speaker);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = "Speaker deleted successfully!";
+            }
+            return RedirectToAction("Speakers");
+        }
+
+        // ==================== ASSIGN SPEAKER TO SESSION ====================
+
+        // GET: Assign Speaker Form
+        [HttpGet]
+        public async Task<IActionResult> AssignSpeaker()
+        {
+            // Get ALL sessions with their event and speaker details
+            var sessions = await _context.Sessions
+                .Include(s => s.Event)
+                .Include(s => s.Speaker)
+                .OrderByDescending(s => s.SessionStart)
+                .ToListAsync();
+            
+            var speakers = await _context.Speakers
+                .OrderBy(s => s.SpeakerName)
+                .ToListAsync();
+            
+            ViewBag.Sessions = sessions;
+            ViewBag.Speakers = speakers;
+            
+            // Show warning if no sessions exist
+            if (sessions.Count == 0)
+            {
+                TempData["Error"] = "No sessions found. Please create a session first.";
+            }
+            
+            return View();
+        }
+
+        // POST: Assign Speaker
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignSpeaker(Guid sessionId, Guid speakerId)
+        {
+            if (sessionId == Guid.Empty)
+            {
+                TempData["Error"] = "Please select a session";
+                return RedirectToAction("AssignSpeaker");
+            }
+            
+            if (speakerId == Guid.Empty)
+            {
+                TempData["Error"] = "Please select a speaker";
+                return RedirectToAction("AssignSpeaker");
+            }
+
+            var session = await _context.Sessions
+                .Include(s => s.Event)
+                .Include(s => s.Speaker)
+                .FirstOrDefaultAsync(s => s.SessionId == sessionId);
+                
+            if (session != null)
+            {
+                var speaker = await _context.Speakers.FindAsync(speakerId);
+                if (speaker != null)
+                {
+                    session.SpeakerId = speakerId;
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = $"Speaker '{speaker.SpeakerName}' assigned to session '{session.SessionTitle}' successfully!";
+                }
+                else
+                {
+                    TempData["Error"] = "Speaker not found";
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Session not found";
+            }
+            
+            return RedirectToAction("Sessions");
+        }
+    }
+}

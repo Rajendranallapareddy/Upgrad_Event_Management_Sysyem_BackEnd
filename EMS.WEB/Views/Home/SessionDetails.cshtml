@@ -1,0 +1,50 @@
+@model SessionInfo
+@{
+    ViewData["Title"] = Model.SessionTitle;
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/Home/EventDetails/@Model.EventId">@Model.Event?.EventName</a></li>
+                <li class="breadcrumb-item active">@Model.SessionTitle</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">@Model.SessionTitle</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-calendar me-2"></i>Event:</strong> @Model.Event?.EventName</p>
+                        <p><strong><i class="fas fa-clock me-2"></i>Start Time:</strong> @Model.SessionStart.ToString("MMMM dd, yyyy - hh:mm tt")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-hourglass-end me-2"></i>End Time:</strong> @Model.SessionEnd.ToString("hh:mm tt")</p>
+                        @if (Model.Speaker != null)
+                        {
+                            <p><strong><i class="fas fa-user me-2"></i>Speaker:</strong> @Model.Speaker.SpeakerName</p>
+                        }
+                    </div>
+                </div>
+
+                <h5>Description:</h5>
+                <p class="text-muted">@Model.Description</p>
+
+                @if (!string.IsNullOrEmpty(Model.SessionUrl))
+                {
+                    <div class="text-center mt-4">
+                        <a href="@Model.SessionUrl" target="_blank" class="btn btn-success btn-lg">
+                            <i class="fas fa-video me-2"></i>Join Session
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

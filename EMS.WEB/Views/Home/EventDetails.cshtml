@@ -1,0 +1,93 @@
+@model EventDetails
+@{
+    ViewData["Title"] = Model.EventName;
+    Layout = "_Layout";
+}
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active">@Model.EventName</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow mb-4">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">@Model.EventName</h3>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-tag me-2"></i>Category:</strong> @Model.EventCategory</p>
+                        <p><strong><i class="fas fa-calendar me-2"></i>Date:</strong> @Model.EventDate.ToString("MMMM dd, yyyy")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong><i class="fas fa-clock me-2"></i>Sessions:</strong> @Model.Sessions.Count</p>
+                        <p><strong><i class="fas fa-flag-checkered me-2"></i>Status:</strong> 
+                            <span class="badge bg-success">@Model.Status</span>
+                        </p>
+                    </div>
+                </div>
+                
+                <h5>Description:</h5>
+                <p class="text-muted">@Model.Description</p>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Event Sessions</h4>
+        <div class="row g-3">
+            @foreach (var session in Model.Sessions.OrderBy(s => s.SessionStart))
+            {
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-7">
+                                    <h5 class="card-title text-primary">@session.SessionTitle</h5>
+                                    <p class="text-muted small mb-0">@session.Description</p>
+                                </div>
+                                <div class="col-md-3">
+                                    <p class="mb-0"><i class="fas fa-clock me-1"></i> @session.SessionStart.ToString("hh:mm tt") - @session.SessionEnd.ToString("hh:mm tt")</p>
+                                    @if (session.Speaker != null)
+                                    {
+                                        <p class="mb-0"><i class="fas fa-user me-1"></i> @session.Speaker.SpeakerName</p>
+                                    }
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    @if (!string.IsNullOrEmpty(session.SessionUrl))
+                                    {
+                                        <a href="@session.SessionUrl" target="_blank" class="btn btn-sm btn-info">
+                                            <i class="fas fa-video me-1"></i> Join
+                                        </a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (User.Identity.IsAuthenticated && User.IsInRole("Participant"))
+        {
+            <div class="mt-4 text-center">
+                <form asp-controller="Participant" asp-action="RegisterForEvent" method="post">
+                    <input type="hidden" name="eventId" value="@Model.EventId" />
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="fas fa-user-check me-2"></i>Register for this Event
+                    </button>
+                </form>
+            </div>
+        }
+        else if (!User.Identity.IsAuthenticated)
+        {
+            <div class="mt-4 text-center">
+                <a href="/Account/Login" class="btn btn-warning btn-lg">
+                    <i class="fas fa-sign-in-alt me-2"></i>Login to Register
+                </a>
+            </div>
+        }
+    </div>
+</div>
